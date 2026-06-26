@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>دعوة زفاف</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
 </head>
 <body>
-
     <div id="particles-bg"></div>
 
     <audio id="bgMusic" loop preload="auto" style="display:none;">
@@ -18,7 +18,37 @@
     <div id="invitationScreen" class="screen initial-blur">
         <div class="invitation-wrapper" id="invitationWrapper">
             <img src="images/photo_2026-06-24_07-30-20.jpg" class="invitation-scroll">
-            <img src="images/photo_2026-06-24_07-30-20.jpg" class="invitation-scroll">
+            
+            <div class="last-image-container">
+                <img src="images/photo_2026-06-24_07-30-20.jpg" class="invitation-scroll">
+                
+                <div class="countdown-section" id="countdownSection">
+                    <div class="countdown-container">
+                        
+                        <h2 class="countdown-title">العد التنازلي</h2>
+                        
+                        <div class="countdown-grid">
+                            <div class="countdown-box">
+                                <span id="days">00</span>
+                                <label>يوم</label>
+                            </div>
+                            <div class="countdown-box">
+                                <span id="hours">00</span>
+                                <label>ساعة</label>
+                            </div>
+                            <div class="countdown-box">
+                                <span id="minutes">00</span>
+                                <label>دقيقة</label>
+                            </div>
+                            <div class="countdown-box">
+                                <span id="seconds">00</span>
+                                <label>ثانية</label>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -32,25 +62,19 @@
         // ===== كود تفعيل وتشغيل الجسيمات (البلورات) =====
         tsParticles.load("particles-bg", {
             particles: {
-                number: {
-                    value: 80, // عدد البلورات
-                    density: { enable: true, area: 800 }
-                },
-                color: { value: "#ffffff" }, // لون البلورات (أبيض)
-                shape: { type: "circle" }, // شكلها دوائر صغيرة
+                number: { value: 80, density: { enable: true, area: 800 } },
+                color: { value: "#ffffff" },
+                shape: { type: "circle" },
                 opacity: {
                     value: 0.7,
                     random: true,
                     anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false }
                 },
-                size: {
-                    value: { min: 2, max: 6 }, // أحجام عشوائية للبلورات لتبدو كالبريق
-                    random: true
-                },
+                size: { value: { min: 2, max: 6 }, random: true },
                 move: {
                     enable: true,
-                    speed: 2, // سرعة التساقط والحركة
-                    direction: "bottom", // تتساقط لأسفل كالمطر والثلج
+                    speed: 2,
+                    direction: "bottom",
                     random: true,
                     straight: false,
                     outModes: { default: "out" }
@@ -60,31 +84,38 @@
             retina_detect: true
         });
 
-        // ===== كود التحكم في الدائرة والتلاشي والسكرول =====
+        // ===== كود التحكم في الدائرة والتلاشي والسكرول المنسق تتابعياً =====
         const enterBtn = document.getElementById('enterBtn');
         const circleScreen = document.getElementById('circleScreen');
         const invitationScreen = document.getElementById('invitationScreen');
         const wrapper = document.getElementById('invitationWrapper');
         const bgMusic = document.getElementById('bgMusic');
+        const countdownSection = document.getElementById('countdownSection');
 
         let scrollInterval;
         const speed = 1;
 
         wrapper.style.overflowY = 'hidden';
-
         enterBtn.addEventListener('click', () => {
+            // 1. تتلاشى الدائرة أولاً بلطف خلال ثانية واحدة
             circleScreen.classList.add('fade-out');
-            invitationScreen.classList.remove('initial-blur');
-            wrapper.style.overflowY = 'auto';
-
+            
             if(bgMusic) {
                 bgMusic.play().catch(err => console.log(err));
             }
 
+            // 2. بعد بدء تلاشي الدائرة بقليل (انتظار 600ms)، تبدأ الستارة بالانقشاع بهدوء تام
+            setTimeout(() => {
+                invitationScreen.classList.remove('initial-blur');
+                invitationScreen.classList.add('reveal-curtain');
+                wrapper.style.overflowY = 'auto';
+            }, 600);
+
+            // 3. بدء السكرول التلقائي فور اكتمال حركة الستارة اللطيفة (4 ثوانٍ للستارة + 600ms الانتظار)
             setTimeout(() => {
                 circleScreen.style.display = 'none';
                 startAutoScroll();
-            }, 1500); 
+            }, 1000); 
         });
 
         function startAutoScroll() {
@@ -100,7 +131,38 @@
 
         wrapper.addEventListener('touchstart', () => clearInterval(scrollInterval));
         wrapper.addEventListener('pointerdown', () => clearInterval(scrollInterval));
-    </script>
 
+        wrapper.addEventListener('scroll', () => {
+            const sectionTop = countdownSection.getBoundingClientRect().top;
+            const triggerPoint = window.innerHeight - 100;
+            if (sectionTop < triggerPoint) {
+                countdownSection.classList.add('pop-in');
+            }
+        });
+
+        // ===== كود تشغيل العداد التنازلي الميقاتي =====
+        const targetDate = new Date(2026, 7, 15, 20, 0, 0).getTime();
+
+        const countdownFunction = setInterval(() => {
+            const now = new Date().getTime();
+            const difference = targetDate - now;
+
+            if (difference < 0) {
+                clearInterval(countdownFunction);
+                document.querySelector('.countdown-container').innerHTML = "<p style='color:#c49ea3; font-size:24px; font-weight:bold;'>بدأ الحفل!</p>";
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = days < 10 ? '0' + days : days;
+            document.getElementById('hours').innerText = hours < 10 ? '0' + hours : hours;
+            document.getElementById('minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
+        }, 1000);
+    </script>
 </body>
 </html>
